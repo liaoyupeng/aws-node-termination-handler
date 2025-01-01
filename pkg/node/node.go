@@ -149,6 +149,10 @@ func (n Node) CordonAndDrain(nodeName string, reason string, recorder recorderIn
 			err = n.drainHelper.DeleteOrEvictPods(pods.Items)
 		}
 	} else {
+		// In the event of Spot ITN the node will go away in 2 minutes no matter what so let's just delete all pods so new pods can be spined up
+		if (strings.Contains(reason, 'Spot ITN received')) {
+			n.drainHelper.DisableEviction = true
+		}
 		// RunNodeDrain does an etcd quorum-read to list all pods on this node
 		err = drain.RunNodeDrain(n.drainHelper, node.Name)
 	}
